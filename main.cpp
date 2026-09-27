@@ -1,6 +1,10 @@
-#include "./include/CLI11.hpp"
+#include "./include/CLI11/CLI11.hpp"
 #include <iostream>
 #include <string>
+
+#include "./include/check.hpp"
+#include "./include/cmd.hpp"
+
 using namespace std;
 
 #define VERSION "v0.1.0"
@@ -19,8 +23,20 @@ int main(int argc,char* argv[]) {
 
     auto* init=rie.add_subcommand("init","初始化一个新的仓库");
     init->alias("i");
-    init->callback([](){
-        cout<<"init failed."<<endl;
+    bool initConfirmed=false;
+    init->add_flag("-y",initConfirmed,"跳过二次确认");
+    init->callback([&](){
+        if(!initConfirmed) {
+            cout<<"确认执行初始化操作吗 (键入y确认) ? ";
+            char c=getchar();
+            if(c!='y' && c!='Y') {
+                cout<<"已终止初始化操作!"<<endl;
+                return;
+            }
+        }
+        if(checkToolEnv()) {
+            doInit();
+        }
     });
 
     CLI11_PARSE(rie,argc,argv);
